@@ -58,8 +58,13 @@ const App = () => {
     setSelectedMovie(null);
   };
 
-  const handleDeleteClick = (id) =>
-    setRatedMovies((prev) => prev.filter((movie) => movie.imdbID !== id));
+  const handleDeleteClick = (movie) => {
+    const watchTime = movie.Runtime.split(' ')[0];
+    setTimeWatched((prev) => prev - +watchTime);
+    setRatedMovies((prev) =>
+      prev.filter((ratedMovie) => ratedMovie.imdbID !== movie.imdbID),
+    );
+  };
 
   return (
     <>
@@ -116,7 +121,7 @@ const App = () => {
                       <p>🌟 {movie.personalRating}</p>
                       <p>⏳ {movie.Runtime}</p>
                       <button
-                        onClick={() => handleDeleteClick(movie.imdbID)}
+                        onClick={() => handleDeleteClick(movie)}
                         className="btn-delete"
                       >
                         X
