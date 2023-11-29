@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
-// const getUrl = (type, searchParameter) =>
-//   type === 'id'
-//     ? `http://www.omdbapi.com/?apikey=362a4a6c&i=${searchParameter}`
-//     : `http://www.omdbapi.com/?apikey=362a4a6c&s=${searchParameter}`;
+const getUrl = (type, searchParameter) =>
+  type === 'id'
+    ? `http://www.omdbapi.com/?apikey=362a4a6c&i=${searchParameter}`
+    : `http://www.omdbapi.com/?apikey=362a4a6c&s=${searchParameter}`;
 
 const App = () => {
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -18,24 +18,24 @@ const App = () => {
   const [movieToSearch, setMovieToSearch] = useState('Avatar');
 
   useEffect(() => {
-    // fetch(getUrl('search', movieToSearch))
-    //   .then((r) => r.json())
-    //   .then((data) => setMovies(data.Search));
-    fetch('../mock/fake-data.json')
+    fetch(getUrl('search', movieToSearch))
       .then((r) => r.json())
       .then((data) => setMovies(data.Search));
+    // fetch('../mock/fake-data.json')
+    //   .then((r) => r.json())
+    //   .then((data) => setMovies(data.Search));
   }, [movieToSearch]);
 
   useEffect(() => {
     if (selectedMovie) {
-      // fetch(getUrl('id', selectedMovie.imdbID))
-      //   .then((r) => r.json())
-      //   .then((data) => setMovieSummary(data))
-      //   .catch((err) => console.log(err));
-      fetch('../mock/fake-overview.json')
+      fetch(getUrl('id', selectedMovie.imdbID))
         .then((r) => r.json())
         .then((data) => setMovieSummary(data))
         .catch((err) => console.log(err));
+      // fetch('../mock/fake-overview.json')
+      //   .then((r) => r.json())
+      //   .then((data) => setMovieSummary(data))
+      //   .catch((err) => console.log(err));
     }
   }, [selectedMovie]);
 
@@ -54,6 +54,9 @@ const App = () => {
     setRatedMovies((prev) => [...prev, newMovie]);
     setSelectedMovie(null);
   };
+
+  const handleDeleteClick = (id) =>
+    setRatedMovies((prev) => prev.filter((movie) => movie.imdbID !== id));
 
   return (
     <>
@@ -109,6 +112,12 @@ const App = () => {
                       <p>⭐ {movie.Year}</p>
                       <p>🌟 {movie.personalRating}</p>
                       <p>⏳ {movie.Runtime}</p>
+                      <button
+                        onClick={() => handleDeleteClick(movie.imdbID)}
+                        className="btn-delete"
+                      >
+                        X
+                      </button>
                     </div>
                   </li>
                 ))}
