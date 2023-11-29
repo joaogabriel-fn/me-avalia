@@ -12,6 +12,7 @@ const App = () => {
   const [movieSummary, setMovieSummary] = useState({});
 
   const [ratedMovies, setRatedMovies] = useState([]);
+  const [timeWatched, setTimeWatched] = useState(0);
   const [personalRating, setPersonalRating] = useState(0);
 
   const [inputValue, setInputValue] = useState('');
@@ -50,8 +51,10 @@ const App = () => {
   };
 
   const handleSubmitRating = (personalRating, movie) => {
+    const watchTime = movie.Runtime.split(' ')[0];
     const newMovie = { ...movie, personalRating };
     setRatedMovies((prev) => [...prev, newMovie]);
+    setTimeWatched((prev) => prev + +watchTime);
     setSelectedMovie(null);
   };
 
@@ -99,8 +102,8 @@ const App = () => {
               <div className="summary">
                 <h2>Filmes assistidos</h2>
                 <div>
-                  <p>#️⃣ 0 filmes</p>
-                  <p>⏳ 0 min</p>
+                  <p>#️⃣ {ratedMovies.length} filmes</p>
+                  <p>⏳ {timeWatched} min</p>
                 </div>
               </div>
               <ul className="list list-watched">
