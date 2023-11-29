@@ -80,7 +80,7 @@ const App = () => {
           />
           <button className="btn-search">Buscar</button>
         </form>
-        <h2 className="num-result">5 resultados</h2>
+        <h2 className="num-result">{movies?.length} resultados</h2>
       </nav>
 
       <main className="main">
@@ -117,7 +117,7 @@ const App = () => {
                     <h3>{movie.Title}</h3>
                     <img src={movie.Poster} alt="" />
                     <div>
-                      <p>⭐ {movie.Year}</p>
+                      <p>⭐ {movie.imdbRating}</p>
                       <p>🌟 {movie.personalRating}</p>
                       <p>⏳ {movie.Runtime}</p>
                       <button
