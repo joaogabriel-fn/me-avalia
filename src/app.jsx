@@ -1,32 +1,42 @@
 import { useState, useEffect } from 'react';
 
-const getUrl = (type, searchParameter) =>
-  type === 'id'
-    ? `http://www.omdbapi.com/?apikey=362a4a6c&i=${searchParameter}`
-    : `http://www.omdbapi.com/?apikey=362a4a6c&s=${searchParameter}`;
+// const getUrl = (type, searchParameter) =>
+//   type === 'id'
+//     ? `http://www.omdbapi.com/?apikey=362a4a6c&i=${searchParameter}`
+//     : `http://www.omdbapi.com/?apikey=362a4a6c&s=${searchParameter}`;
 
 const App = () => {
-  const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
+
+  const [movies, setMovies] = useState([]);
   const [movieSummary, setMovieSummary] = useState({});
-  const [inputValue, setInputValue] = useState('Avatar');
+
+  const [ratedMovies, setRatedMovies] = useState([]);
+  const [personalRating, setPersonalRating] = useState(0);
+
+  const [inputValue, setInputValue] = useState('');
+  const [movieToSearch, setMovieToSearch] = useState('Avatar');
 
   useEffect(() => {
-    fetch(getUrl('search', inputValue))
+    // fetch(getUrl('search', movieToSearch))
+    //   .then((r) => r.json())
+    //   .then((data) => setMovies(data.Search));
+    fetch('../mock/fake-data.json')
       .then((r) => r.json())
       .then((data) => setMovies(data.Search));
-  }, [inputValue]);
+  }, [movieToSearch]);
 
   useEffect(() => {
     if (selectedMovie) {
-      fetch(getUrl('id', selectedMovie.imdbID))
+      // fetch(getUrl('id', selectedMovie.imdbID))
+      //   .then((r) => r.json())
+      //   .then((data) => setMovieSummary(data))
+      //   .catch((err) => console.log(err));
+      fetch('../mock/fake-overview.json')
         .then((r) => r.json())
         .then((data) => setMovieSummary(data))
         .catch((err) => console.log(err));
     }
-    // fetch('../mock/fake-overview.json')
-    //   .then((r) => r.json())
-    //   .then((data) => setMovieSummary(data));
   }, [selectedMovie]);
 
   const handleSelectMovie = (movie) =>
@@ -35,7 +45,14 @@ const App = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
 
-    setInputValue(e.target.movieName.value);
+    setMovieToSearch(inputValue);
+    setInputValue('');
+  };
+
+  const handleSubmitRating = (personalRating, movie) => {
+    const newMovie = { ...movie, personalRating };
+    setRatedMovies((prev) => [...prev, newMovie]);
+    setSelectedMovie(null);
   };
 
   return (
@@ -44,7 +61,8 @@ const App = () => {
         <img className="logo" src="./img/logo-me-avalia.png" alt="" />
         <form onSubmit={handleSearchSubmit} className="form-search">
           <input
-            name="movieName"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             className="search"
             placeholder="Buscar Filmes..."
             type="text"
@@ -74,18 +92,39 @@ const App = () => {
           <button className="btn-toggle">-</button>
 
           {!selectedMovie && (
-            <div className="summary">
-              <h2>Filmes assistidos</h2>
-              <div>
-                <p>#️⃣ 0 filmes</p>
-                <p>⏳ 0 min</p>
+            <>
+              <div className="summary">
+                <h2>Filmes assistidos</h2>
+                <div>
+                  <p>#️⃣ 0 filmes</p>
+                  <p>⏳ 0 min</p>
+                </div>
               </div>
-            </div>
+              <ul className="list list-watched">
+                {ratedMovies?.map((movie) => (
+                  <li key={movie.imdbID}>
+                    <h3>{movie.Title}</h3>
+                    <img src={movie.Poster} alt="" />
+                    <div>
+                      <p>⭐ {movie.Year}</p>
+                      <p>🌟 {movie.personalRating}</p>
+                      <p>⏳ {movie.Runtime}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
 
           {selectedMovie && (
             <div className="details">
               <header>
+                <button
+                  onClick={() => setSelectedMovie(null)}
+                  className="btn-back"
+                >
+                  ←
+                </button>
                 <img src={selectedMovie.Poster} alt="" />
                 <section className="details-overview">
                   <h2>{selectedMovie.Title}</h2>
@@ -99,15 +138,27 @@ const App = () => {
 
               <section>
                 <div className="rating">
-                  <select>
+                  <select onChange={(e) => setPersonalRating(e.target.value)}>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
                     <option value="4">4</option>
                     <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
                   </select>
 
-                  <button className="btn-add">+ Adicionar à lista</button>
+                  <button
+                    onClick={() =>
+                      handleSubmitRating(personalRating, movieSummary)
+                    }
+                    className="btn-add"
+                  >
+                    + Adicionar à lista
+                  </button>
                 </div>
 
                 <p>{movieSummary.Plot}</p>
@@ -116,8 +167,6 @@ const App = () => {
               </section>
             </div>
           )}
-
-          <ul className="list list-watched"></ul>
         </div>
       </main>
     </>
