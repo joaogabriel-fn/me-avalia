@@ -1,39 +1,50 @@
 import { useState, useEffect } from 'react';
 
-// const getUrl = (id) => `http://www.omdbapi.com/?apikey=362a4a6c&i=${id}`;
+const getUrl = (type, searchParameter) =>
+  type === 'id'
+    ? `http://www.omdbapi.com/?apikey=362a4a6c&i=${searchParameter}`
+    : `http://www.omdbapi.com/?apikey=362a4a6c&s=${searchParameter}`;
 
 const App = () => {
   const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [movieSummary, setMovieSummary] = useState({});
+  const [inputValue, setInputValue] = useState('Avatar');
 
   useEffect(() => {
-    fetch('../mock/fake-data.json')
+    fetch(getUrl('search', inputValue))
       .then((r) => r.json())
       .then((data) => setMovies(data.Search));
-  }, []);
+  }, [inputValue]);
 
   useEffect(() => {
-    // if (selectedMovie) {
-    //   fetch(getUrl(selectedMovie.imdbID))
-    //     .then((r) => r.json())
-    //     .then((data) => setMovieSummary(data))
-    //     .catch((err) => console.log(err));
-    // }
-    fetch('../mock/fake-overview.json')
-      .then((r) => r.json())
-      .then((data) => setMovieSummary(data));
+    if (selectedMovie) {
+      fetch(getUrl('id', selectedMovie.imdbID))
+        .then((r) => r.json())
+        .then((data) => setMovieSummary(data))
+        .catch((err) => console.log(err));
+    }
+    // fetch('../mock/fake-overview.json')
+    //   .then((r) => r.json())
+    //   .then((data) => setMovieSummary(data));
   }, [selectedMovie]);
 
   const handleSelectMovie = (movie) =>
     setSelectedMovie((prev) => (prev?.imdbID === movie.imdbID ? null : movie));
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    setInputValue(e.target.movieName.value);
+  };
+
   return (
     <>
       <nav className="nav-bar">
         <img className="logo" src="./img/logo-me-avalia.png" alt="" />
-        <form className="form-search">
+        <form onSubmit={handleSearchSubmit} className="form-search">
           <input
+            name="movieName"
             className="search"
             placeholder="Buscar Filmes..."
             type="text"
@@ -47,7 +58,7 @@ const App = () => {
         <div className="box">
           <button className="btn-toggle">-</button>
           <ul className="list list-movies">
-            {movies.map((movie) => (
+            {movies?.map((movie) => (
               <li key={movie.imdbID} onClick={() => handleSelectMovie(movie)}>
                 <h3>{movie.Title}</h3>
                 <img src={movie.Poster} alt="" />
