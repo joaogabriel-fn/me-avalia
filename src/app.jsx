@@ -5,6 +5,9 @@ const getUrl = (type, searchParameter) =>
     ? `http://www.omdbapi.com/?apikey=362a4a6c&i=${searchParameter}`
     : `http://www.omdbapi.com/?apikey=362a4a6c&s=${searchParameter}`;
 
+const getTotalMinutes = (ratedMovies) =>
+  ratedMovies.reduce((acc, item) => acc + +item.Runtime.split(' ')[0], 0);
+
 const App = () => {
   const [selectedMovie, setSelectedMovie] = useState(null);
 
@@ -12,8 +15,10 @@ const App = () => {
   const [movieSummary, setMovieSummary] = useState({});
 
   const [ratedMovies, setRatedMovies] = useState([]);
-  const [timeWatched, setTimeWatched] = useState(0);
-  const [personalRating, setPersonalRating] = useState(0);
+  // Estado timeWatched pode ser substituido por uma função que extrai o tempo assistindo quando o <p> for renderizado
+  // const [timeWatched, setTimeWatched] = useState(0);
+  // Estado personalRating pode ser substituido inserindo um form no select de rating, onde executa uma função onsubmit q grava o rating direto no objeto ratedMovies
+  // const [personalRating, setPersonalRating] = useState(0);
 
   const [inputValue, setInputValue] = useState('');
   const [movieToSearch, setMovieToSearch] = useState('Avatar');
@@ -50,17 +55,25 @@ const App = () => {
     setInputValue('');
   };
 
-  const handleSubmitRating = (personalRating, movie) => {
-    const watchTime = movie.Runtime.split(' ')[0];
-    const newMovie = { ...movie, personalRating };
+  // const handleSubmitRating = (personalRating, movie) => {
+  //   const watchTime = movie.Runtime.split(' ')[0];
+  //   const newMovie = { ...movie, personalRating };
+  //   setRatedMovies((prev) => [...prev, newMovie]);
+  //   setTimeWatched((prev) => prev + +watchTime);
+  //   setSelectedMovie(null);
+  // };
+  const handleSubmitRating = (e) => {
+    e.preventDefault();
+
+    const { rating } = e.target.elements;
+    const newMovie = { ...movieSummary, personalRating: rating.value };
     setRatedMovies((prev) => [...prev, newMovie]);
-    setTimeWatched((prev) => prev + +watchTime);
     setSelectedMovie(null);
   };
 
   const handleDeleteClick = (movie) => {
-    const watchTime = movie.Runtime.split(' ')[0];
-    setTimeWatched((prev) => prev - +watchTime);
+    // const watchTime = movie.Runtime.split(' ')[0];
+    // setTimeWatched((prev) => prev - +watchTime);
     setRatedMovies((prev) =>
       prev.filter((ratedMovie) => ratedMovie.imdbID !== movie.imdbID),
     );
@@ -80,7 +93,9 @@ const App = () => {
           />
           <button className="btn-search">Buscar</button>
         </form>
-        <h2 className="num-result">{movies?.length} resultados</h2>
+        <p className="num-result">
+          <strong>{movies?.length} Resultados</strong>
+        </p>
       </nav>
 
       <main className="main">
@@ -89,10 +104,13 @@ const App = () => {
           <ul className="list list-movies">
             {movies?.map((movie) => (
               <li key={movie.imdbID} onClick={() => handleSelectMovie(movie)}>
-                <h3>{movie.Title}</h3>
                 <img src={movie.Poster} alt="" />
+                <h3>{movie.Title}</h3>
                 <div>
-                  <p>📅 {movie.Year}</p>
+                  <p>
+                    <span>📅</span>
+                    <span>{movie.Year}</span>
+                  </p>
                 </div>
               </li>
             ))}
@@ -102,7 +120,98 @@ const App = () => {
         <div className="box">
           <button className="btn-toggle">-</button>
 
-          {!selectedMovie && (
+          {selectedMovie ? (
+            <div className="details">
+              <header>
+                <button
+                  className="btn-back"
+                  onClick={() => setSelectedMovie(null)}
+                >
+                  &larr;
+                </button>
+                <img
+                  src={movieSummary.Poster}
+                  alt={`Poster de ${movieSummary.Title}`}
+                />
+                <div className="details-overview">
+                  <h2>{movieSummary.title}</h2>
+                  <p>
+                    {movieSummary.Released} &bull; {movieSummary.Runtime}
+                  </p>
+                  <p>{movieSummary.Genre}</p>
+                  <p>
+                    <span>⭐</span>
+                    {movieSummary.imdbRating} IMDB rating
+                  </p>
+                </div>
+              </header>
+              <section>
+                <div className="rating">
+                  <form onSubmit={handleSubmitRating} className="form-rating">
+                    <p>Qual nota você dá para este filme?</p>
+                    <div>
+                      <select name="rating" defaultValue={1}>
+                        {Array.from({ length: 10 }, (_, i) => (
+                          <option key={i} value={i + 1}>
+                            {i + 1}
+                          </option>
+                        ))}
+                      </select>
+                      <button className="btn-add">+ Adicionar à lista</button>
+                    </div>
+                  </form>
+                  <p>{movieSummary.Plot}</p>
+                  <p>Elenco: {movieSummary.Actors}</p>
+                  <p>Direção: {movieSummary.Director}</p>
+                </div>
+              </section>
+            </div>
+          ) : (
+            <>
+              <div className="summary">
+                <h2>Histórico</h2>
+                <div>
+                  <p>
+                    <span>#️⃣</span> <span>{ratedMovies.length} Filmes</span>
+                  </p>
+                  <p>
+                    <span>⏳</span>{' '}
+                    <span>{getTotalMinutes(ratedMovies)} min</span>
+                  </p>
+                </div>
+              </div>
+              <ul className="list">
+                {ratedMovies.map((m) => (
+                  <li key={m.imdbID}>
+                    <img src={m.Poster} alt={`Poster de ${m.Title}`} />
+                    <h3>{m.Title}</h3>
+                    <div>
+                      <p>
+                        <span>⭐</span>
+                        <span>{m.imdbRating}</span>
+                      </p>
+                      <p>
+                        <span>🌟</span>
+                        <span>{m.personalRating}</span>
+                      </p>
+                      <p>
+                        <span>⏳</span>
+                        <span>{m.Runtime}</span>
+                      </p>
+                      <button
+                        onClick={() => handleDeleteClick(m)}
+                        className="btn-delete"
+                      >
+                        X
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {/* {!selectedMovie && (
             <>
               <div className="summary">
                 <h2>Filmes assistidos</h2>
@@ -140,17 +249,20 @@ const App = () => {
                   onClick={() => setSelectedMovie(null)}
                   className="btn-back"
                 >
-                  ←
+                  &larr;
                 </button>
                 <img src={selectedMovie.Poster} alt="" />
-                <section className="details-overview">
+                <div className="details-overview">
                   <h2>{selectedMovie.Title}</h2>
                   <p>
-                    {movieSummary.Released} ◦ {movieSummary.Runtime}
+                    {movieSummary.Released} &bull; {movieSummary.Runtime}
                   </p>
                   <p>{movieSummary.Genre}</p>
-                  <p>⭐ {movieSummary.imdbRating} imdbRating</p>
-                </section>
+                  <p>
+                    <span>⭐</span>
+                    {movieSummary.imdbRating} imdbRating
+                  </p>
+                </div>
               </header>
 
               <section>
@@ -183,7 +295,7 @@ const App = () => {
                 <p>Direção: {movieSummary.Director}</p>
               </section>
             </div>
-          )}
+          )} */}
         </div>
       </main>
     </>
